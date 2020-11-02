@@ -76,10 +76,11 @@ class Game:
             block_num = 0            
             for block_pos in row:
                 colour = self.screen[block_pos[1]][block_pos[0]]
-#                 print(colour)
                 if np.all(colour == self.goal_col):
                     self.block_states[row_num][block_num] = 1
-                elif np.all(colour == self.goal_col):
+                elif np.all(colour == self.COLOUR["q"]):
+                    pass
+                else:
                     self.block_states[row_num][block_num] = 0
                 block_num += 1
             row_num += 1
