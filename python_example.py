@@ -7,6 +7,7 @@
 import sys
 from random import randrange
 from ale_py import ALEInterface
+import pygame
 
 if len(sys.argv) < 2:
     print(f"Usage: {sys.argv[0]} rom_file")
@@ -20,7 +21,8 @@ ale.setInt("random_seed", 123)
 # Set USE_SDL to true to display the screen. ALE must be compilied
 # with SDL enabled for this to work. On OSX, pygame init is used to
 # proxy-call SDL_main.
-USE_SDL = False
+USE_SDL = True
+pygame.init()
 if USE_SDL:
     ale.setBool("sound", True)
     ale.setBool("display_screen", True)
