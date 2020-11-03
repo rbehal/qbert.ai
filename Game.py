@@ -1,6 +1,5 @@
 from ale_py import ALEInterface
 import numpy as np
-import pygame
 
 class Game:
     # (x, y) coordinates for the different blocks 
@@ -19,6 +18,8 @@ class Game:
                "bl": [0, 0, 0] }
     # (x, y) offset for searching for entities and enemies 
     POS_OFFSET = (5, 20)
+    # (x, y) coordinates of the left and right disk respectively
+    DISC_POS = [(15,138), (144,138)]
     
     def __init__(self,display=False,random_seed=123,frame_skip=5,rom_file='qbert.bin'):
         self.ale = ALEInterface()
@@ -27,6 +28,7 @@ class Game:
         self.ale.setInt('frame_skip', frame_skip)
 
         if display:
+            import pygame
             pygame.init()
             self.ale.setBool('sound', sound)
             self.ale.setBool('display_screen', display)
@@ -60,6 +62,8 @@ class Game:
                              [0,0,0,0],
                              [0,0,0,0,0],
                              [0,0,0,0,0,0]]
+        # States of discs
+        self.disc_states = [1, 1]
         
     def update(self):
         self.ale.getScreenRGB(self.screen)
@@ -67,6 +71,7 @@ class Game:
         self.update_block_states()
         self.update_enemy_states()
         self.update_entity_states()
+        self.update_disc_states()
 
     def update_goal_col(self):
         raw = self.screen[5:30, 30:40]
@@ -90,13 +95,14 @@ class Game:
             row_num += 1
 
     def update_enemy_states(self):
+        POS_OFFSET = self.POS_OFFSET
         row_num = 0
         for row in self.BLOCK_POS:
             block_num = 0
             for block_pos in row:
                 x,y = block_pos
                 
-                search_area = self.screen[y-POS_OFFSET[1]:y,x-POS_OFFSET[0]:x+POS_OFFSET[1]]
+                search_area = self.screen[y-POS_OFFSET[1]:y,x-POS_OFFSET[0]:x+POS_OFFSET[0]]
                 flat_search = search_area.reshape(POS_OFFSET[0]*POS_OFFSET[1]*2,3)
                 
                 contains_purple = (self.COLOUR["p"] == flat_search).all(1).any()
@@ -108,13 +114,14 @@ class Game:
             row_num += 1
 
     def update_entity_states(self):
+        POS_OFFSET = self.POS_OFFSET
         row_num = 0
         for row in self.BLOCK_POS:
             block_num = 0
             for block_pos in row:
                 x,y = block_pos
                 
-                search_area = self.screen[y-POS_OFFSET[1]:y,x-POS_OFFSET[0]:x+POS_OFFSET[1]]
+                search_area = self.screen[y-POS_OFFSET[1]:y,x-POS_OFFSET[0]:x+POS_OFFSET[0]]
                 flat_search = search_area.reshape(POS_OFFSET[0]*POS_OFFSET[1]*2,3)
                 
                 contains_green = (self.COLOUR["g"] == flat_search).all(1).any()
@@ -124,6 +131,13 @@ class Game:
                     self.entity_states[row_num][block_num] = 0
                 block_num += 1
             row_num += 1
+
+    def update_disc_states(self):
+        bl = self.COLOUR["bl"]
+        # Checking if disc pixels are visible
+        left_disc = not (bl == self.screen[self.DISC_POS[0][1]][self.DISC_POS[0][0]]).all()
+        right_disc = not (bl == self.screen[self.DISC_POS[1][1]][self.DISC_POS[1][0]]).all()
+        self.disc_states = [left_disc, right_disc]
                 
     def is_over(self):
         return self.ale.game_over()
