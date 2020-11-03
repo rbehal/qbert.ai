@@ -17,6 +17,8 @@ class Game:
                "p": [146, 70, 192],
                "q": [181, 83, 40], # Qbert colour
                "bl": [0, 0, 0] }
+    # (x, y) offset for searching for entities and enemies 
+    POS_OFFSET = (5, 20)
     
     def __init__(self,display=False,random_seed=123,frame_skip=5,rom_file='qbert.bin'):
         self.ale = ALEInterface()
@@ -63,6 +65,8 @@ class Game:
         self.ale.getScreenRGB(self.screen)
         self.update_goal_col()
         self.update_block_states()
+        self.update_enemy_states()
+        self.update_entity_states()
 
     def update_goal_col(self):
         raw = self.screen[5:30, 30:40]
@@ -82,6 +86,42 @@ class Game:
                     pass
                 else:
                     self.block_states[row_num][block_num] = 0
+                block_num += 1
+            row_num += 1
+
+    def update_enemy_states(self):
+        row_num = 0
+        for row in self.BLOCK_POS:
+            block_num = 0
+            for block_pos in row:
+                x,y = block_pos
+                
+                search_area = self.screen[y-POS_OFFSET[1]:y,x-POS_OFFSET[0]:x+POS_OFFSET[1]]
+                flat_search = search_area.reshape(POS_OFFSET[0]*POS_OFFSET[1]*2,3)
+                
+                contains_purple = (self.COLOUR["p"] == flat_search).all(1).any()
+                if contains_purple: 
+                    self.enemy_states[row_num][block_num] = 1
+                else:
+                    self.enemy_states[row_num][block_num] = 0
+                block_num += 1
+            row_num += 1
+
+    def update_entity_states(self):
+        row_num = 0
+        for row in self.BLOCK_POS:
+            block_num = 0
+            for block_pos in row:
+                x,y = block_pos
+                
+                search_area = self.screen[y-POS_OFFSET[1]:y,x-POS_OFFSET[0]:x+POS_OFFSET[1]]
+                flat_search = search_area.reshape(POS_OFFSET[0]*POS_OFFSET[1]*2,3)
+                
+                contains_green = (self.COLOUR["g"] == flat_search).all(1).any()
+                if contains_green: 
+                    self.entity_states[row_num][block_num] = 1
+                else:
+                    self.entity_states[row_num][block_num] = 0
                 block_num += 1
             row_num += 1
                 
