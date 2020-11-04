@@ -71,42 +71,56 @@ class Game:
     def update(self):
         self.ale.getScreenRGB(self.screen)
         self.update_goal_col()
-        self.update_block_states()
-        self.update_enemy_states()
-        self.update_entity_states()
         self.update_disc_states()
-        self.update_player_state()
+        self.player.lives = self.ale.lives()
+
+        row_num = 0
+        for row in self.BLOCK_POS:
+            block_num = 0            
+            for block_pos in row:
+                x,y = block_pos
+                POS_OFFSET = self.POS_OFFSET
+
+                # Setting block state based on colour of surface                
+                surface_colour = self.screen[y][x]
+                if np.all(surface_colour == self.goal_col):
+                    self.block_states[row_num][block_num] = 1
+                elif np.all(surface_colour == self.COLOUR["q"]):
+                    pass
+                else:
+                    self.block_states[row_num][block_num] = 0
+
+                # Area above block to search for various entities, enemies, and the player 
+                search_area = self.screen[y-POS_OFFSET[1]:y,x-POS_OFFSET[0]:x+POS_OFFSET[0]]
+                flat_search = search_area.reshape(POS_OFFSET[0]*POS_OFFSET[1]*2,3)
+                
+                # Checking for enemies (purple)
+                contains_enemies = (self.COLOUR["p"] == flat_search).all(1).any()
+                if contains_enemies:
+                    self.enemy_states[row_num][block_num] = 1
+                else:
+                    self.enemy_states[row_num][block_num] = 0
+
+                # Checking for entities (green)
+                contains_entities = (self.COLOUR["g"] == flat_search).all(1).any()
+                if contains_entities:
+                    self.entity_states[row_num][block_num] = 1
+                else:
+                    self.entity_states[row_num][block_num] = 0
+
+                # Checking for qbert (pinkish)
+                contains_qbert = (self.COLOUR["q"] == flat_search).all(1).any()
+                if contains_qbert:
+                    self.player.pos = (row_num, block_num)
+
+                block_num += 1
+            row_num += 1
 
     def update_goal_col(self):
         raw = self.screen[5:30, 30:40]
         raw = raw[np.nonzero(raw)]
         if len(raw > 2):
             self.goal_col = [raw[0], raw[1], raw[2]]
-            
-    def update_block_states(self):
-        row_num = 0
-        for row in self.BLOCK_POS:
-            block_num = 0            
-            for block_pos in row:
-                colour = self.screen[block_pos[1]][block_pos[0]]
-                if np.all(colour == self.goal_col):
-                    self.block_states[row_num][block_num] = 1
-                elif np.all(colour == self.COLOUR["q"]):
-                    pass
-                else:
-                    self.block_states[row_num][block_num] = 0
-                block_num += 1
-            row_num += 1
-
-    def update_enemy_states(self):
-        enemy_blocks = self.search_for_colour(self.COLOUR["p"])
-        for block_pos in enemy_blocks:
-            self.enemy_states[block_pos[0]][block_pos[1]] = 1
-
-    def update_entity_states(self):
-        entity_blocks = self.search_for_colour(self.COLOUR["g"])
-        for block_pos in entity_blocks:
-            self.entity_states[block_pos[0]][block_pos[1]] = 1
 
     def update_disc_states(self):
         bl = self.COLOUR["bl"]
@@ -114,40 +128,6 @@ class Game:
         left_disc = not (bl == self.screen[self.DISC_POS[0][1]][self.DISC_POS[0][0]]).all()
         right_disc = not (bl == self.screen[self.DISC_POS[1][1]][self.DISC_POS[1][0]]).all()
         self.disc_states = [left_disc, right_disc]
-
-    def update_player_state(self):
-        qbert_block = self.search_for_colour(self.COLOUR["q"], True)
-        if (len(qbert_block) == 0):
-            self.player.pos = (0, 0)
-        else:
-            self.player.pos = qbert_block[0]
-        self.player.lives = self.ale.lives()
-
-    # Searches for which blocks contain a given colour above/on them
-    # Returns coordinates of aforementioned blocks
-    def search_for_colour(self,colour,qbert_search=False):
-        POS_OFFSET = self.POS_OFFSET
-        blocks_with_colour = []
-
-        row_num = 0
-        for row in self.BLOCK_POS:
-            block_num = 0
-            for block_pos in row:
-                x,y = block_pos
-                
-                search_area = self.screen[y-POS_OFFSET[1]:y,x-POS_OFFSET[0]:x+POS_OFFSET[0]]
-                flat_search = search_area.reshape(POS_OFFSET[0]*POS_OFFSET[1]*2,3)
-                
-                contains_colour = (colour == flat_search).all(1).any()
-                if contains_colour: 
-                    blocks_with_colour.append((row_num, block_num))
-                    if qbert_search:
-                        return blocks_with_colour
-
-                block_num += 1
-            row_num += 1
-
-        return blocks_with_colour
                 
     def is_over(self):
         return self.ale.game_over()
