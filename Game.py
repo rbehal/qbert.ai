@@ -86,7 +86,7 @@ class Game:
                 if np.all(surface_colour == self.goal_col):
                     self.block_states[row_num][block_num] = 1
                 elif np.all(surface_colour == self.COLOUR["q"]):
-                    pass
+                    self.block_states[row_num][block_num] = 1
                 else:
                     self.block_states[row_num][block_num] = 0
 
@@ -128,6 +128,13 @@ class Game:
         left_disc = not (bl == self.screen[self.DISC_POS[0][1]][self.DISC_POS[0][0]]).all()
         right_disc = not (bl == self.screen[self.DISC_POS[1][1]][self.DISC_POS[1][0]]).all()
         self.disc_states = [left_disc, right_disc]
+
+    def get_state_rep(self):
+        state = ""
+        for row in self.block_states:
+            for block in row:
+                state += str(block)
+        return state
                 
     def is_over(self):
         return self.ale.game_over()
