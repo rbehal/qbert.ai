@@ -41,6 +41,7 @@ def get_euclid_dist(game, states):
     player_pos = np.array(game.player.pos)
     if len(player_pos) == 0: 
         return dist
+    # Calculate Euclidean distance 
     for coord in coords:
         if coord is not None:
             dist += np.linalg.norm(np.array(coord)-player_pos)
@@ -57,6 +58,7 @@ def get_manhattan_dist(game, states):
     player_pos = np.array(game.player.pos)
     if len(player_pos) == 0: 
         return dist
+    # Calculate manhattan distance
     for coord in coords:
         if coord is not None:
             dist += np.sum(np.fabs(np.array(coord)-player_pos))
@@ -72,11 +74,13 @@ def get_hamming_dist(game, states):
         # -1 input as player pos can't match discs in y-direction
         coords = [(4, -1) for state in states if state is not None]
 
-    player_pos = [(index, row.index(game.player.pos)) for index, row in enumerate(states) if game.player.pos in row]
+    # Get player position in terms of indices 
+    player_pos = [(index, row.index(game.player.pos)) for index, row in enumerate(game.BLOCK_POS) if game.player.pos in row]
     if len(player_pos) == 0:
         return dist
     else:
         player_pos = player_pos[0]
+    # Calculate hamming distance
     for coord in coords:
         if coord is not None:
             if coord[0] != player_pos[0]:
@@ -93,13 +97,12 @@ def get_goal_state_distance(game, dist_func):
         for bit in state:
             dist += (1 - int(bit)) ** 2 
         dist = np.sqrt(dist)
-    else:
+    else: # Hamming distance and manhattan is the same for binary
         for bit in state:
             if bit == "0":
                 dist += 1
     return dist
 
-# TODO: Write function to execute an action and receive a reward
 # TODO: Write get max Q-value function out of all actions
 # TODO: Delta update rule
 # TODO: Adding exploration 

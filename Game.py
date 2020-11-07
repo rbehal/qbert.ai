@@ -1,6 +1,7 @@
 from ale_py import ALEInterface
 import numpy as np
 from Player import Player
+from copy import deepcopy
 
 class Game:
     # (x, y) coordinates for the different blocks 
@@ -22,7 +23,17 @@ class Game:
     # (x, y) coordinates of the left and right disk respectively
     DISC_POS = [(15,138), (144,138)]
     
-    def __init__(self,display=False,random_seed=123,frame_skip=5,rom_file='qbert.bin'):
+    def __init__(self,display=False,random_seed=123,frame_skip=5,rom_file='qbert.bin',gamestate=None):
+        if gamestate is not None:
+            self.screen = deepcopy(gamestate.screen)
+            self.goal_col = deepcopy(gamestate.goal_col)
+            self.block_states = deepcopy(gamestate.block_states)
+            self.enemy_states = deepcopy(gamestate.enemy_states)
+            self.entity_states = deepcopy(gamestate.entity_states)
+            self.disc_states = deepcopy(gamestate.disc_states)
+            self.player = Player(None, gamestate.player)
+            return
+        
         self.ale = ALEInterface()
         
         self.ale.setInt("random_seed", random_seed)
@@ -46,28 +57,28 @@ class Game:
         # Goal states for blocks
         self.goal_col = [0,0,0]
         self.block_states = [[0], 
-                             [0,0],
-                             [0,0,0],
-                             [0,0,0,0],
-                             [0,0,0,0,0],
-                             [0,0,0,0,0,0]]
+                            [0,0],
+                            [0,0,0],
+                            [0,0,0,0],
+                            [0,0,0,0,0],
+                            [0,0,0,0,0,0]]
         # States of friendly green entities
         self.entity_states = [[0], 
-                             [0,0],
-                             [0,0,0],
-                             [0,0,0,0],
-                             [0,0,0,0,0],
-                             [0,0,0,0,0,0]]
+                            [0,0],
+                            [0,0,0],
+                            [0,0,0,0],
+                            [0,0,0,0,0],
+                            [0,0,0,0,0,0]]
         # States of enemies 
         self.enemy_states = [[0], 
-                             [0,0],
-                             [0,0,0],
-                             [0,0,0,0],
-                             [0,0,0,0,0],
-                             [0,0,0,0,0,0]]
+                            [0,0],
+                            [0,0,0],
+                            [0,0,0,0],
+                            [0,0,0,0,0],
+                            [0,0,0,0,0,0]]
         # States of discs
         self.disc_states = [self.DISC_POS[0], self.DISC_POS[1]]
-        
+
     def update(self):
         self.ale.getScreenRGB(self.screen)
         self.update_goal_col()
@@ -143,6 +154,65 @@ class Game:
             for block in row:
                 state += str(block)
         return state
+
+    def execute_action(self, action):
+        # Get player position in terms of indices 
+        player_pos = [(index, row.index(self.player.pos)) for index, row in enumerate(self.BLOCK_POS) if self.player.pos in row]
+        if len(player_pos) == 0:
+            return
+
+        y,x = player_pos[0]
+        death_pos = (9999,9999) # Dummy far-off position to indicate unfavourable position
+        action = action.split(".")[1] # Get simple action words
+
+        if action == "UP":
+            new_y = y - 1
+            # Checks if move is within bounds
+            if new_y < 0:
+                self.player.pos = death_pos
+                return
+            if x >= len(self.BLOCK_POS[new_y]):
+                # Check if player is able to jump to disc
+                if new_y == 3 and self.disc_states[1] is not None:
+                    self.player.pos = self.disc_states[1]
+                    return
+                else:
+                    self.player.pos = death_pos
+                    return
+            self.player.pos = self.BLOCK_POS[new_y][x]
+        elif action == "DOWN":
+            new_y = y + 1
+            # Check if move is within bounds
+            if new_y >= len(self.BLOCK_POS):
+                self.player.pos = death_pos
+            else:
+                self.player.pos = self.BLOCK_POS[new_y][x]
+        elif action == "RIGHT":
+            new_x = x + 1
+            new_y = y + 1
+            # Check if move is within bounds
+            if new_y >= len(self.BLOCK_POS):
+                self.player.pos = death_pos
+            else:
+                self.player.pos = self.BLOCK_POS[new_y][new_x]
+        elif action == "LEFT": 
+            new_x = x - 1
+            new_y = y - 1
+            # Check if move is within bounds
+            if new_y < 0:
+                self.player.pos = death_pos
+                return
+            if new_x < 0:
+                # Check if player is able to jump to disc
+                if new_y == 3 and self.disc_states[0] is not None:
+                    self.player.pos = self.disc_states[0]
+                    return
+                else:
+                    self.player.pos = death_pos
+                    return    
+            self.player.pos = self.BLOCK_POS[new_y][new_x]   
+
+        return  
                 
     def is_over(self):
         return self.ale.game_over()
