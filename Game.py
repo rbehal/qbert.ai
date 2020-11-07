@@ -66,7 +66,7 @@ class Game:
                              [0,0,0,0,0],
                              [0,0,0,0,0,0]]
         # States of discs
-        self.disc_states = [1, 1]
+        self.disc_states = [self.DISC_POS[0], self.DISC_POS[1]]
         
     def update(self):
         self.ale.getScreenRGB(self.screen)
@@ -111,7 +111,7 @@ class Game:
                 # Checking for qbert (pinkish)
                 contains_qbert = (self.COLOUR["q"] == flat_search).all(1).any()
                 if contains_qbert:
-                    self.player.pos = (row_num, block_num)
+                    self.player.pos = self.BLOCK_POS[row_num][block_num]
 
                 block_num += 1
             row_num += 1
@@ -125,9 +125,17 @@ class Game:
     def update_disc_states(self):
         bl = self.COLOUR["bl"]
         # Checking if disc pixels are visible
-        left_disc = not (bl == self.screen[self.DISC_POS[0][1]][self.DISC_POS[0][0]]).all()
-        right_disc = not (bl == self.screen[self.DISC_POS[1][1]][self.DISC_POS[1][0]]).all()
+        left_disc = None if (bl == self.screen[self.DISC_POS[0][1]][self.DISC_POS[0][0]]).all() else self.DISC_POS[0]
+        right_disc = None if (bl == self.screen[self.DISC_POS[1][1]][self.DISC_POS[1][0]]).all() else self.DISC_POS[1]
         self.disc_states = [left_disc, right_disc]
+
+    def get_coords_from_state(self, states):
+        coords = []
+        for i in range(len(states)):
+            for j in range(len(states[i])):
+                if states[i][j] == 1:
+                    coords.append(self.BLOCK_POS[i][j])
+        return coords
 
     def get_state_rep(self):
         state = ""
