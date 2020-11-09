@@ -162,14 +162,11 @@ class Game:
             return
 
         y,x = player_pos[0]
-        death_pos = (9999,9999) # Dummy far-off position to indicate unfavourable position
-        action = action.split(".")[1] # Get simple action words
 
         if action == "UP":
             new_y = y - 1
             # Checks if move is within bounds
             if new_y < 0:
-                self.player.pos = death_pos
                 return
             if x >= len(self.BLOCK_POS[new_y]):
                 # Check if player is able to jump to disc
@@ -177,30 +174,24 @@ class Game:
                     self.player.pos = self.disc_states[1]
                     return
                 else:
-                    self.player.pos = death_pos
                     return
             self.player.pos = self.BLOCK_POS[new_y][x]
         elif action == "DOWN":
             new_y = y + 1
             # Check if move is within bounds
-            if new_y >= len(self.BLOCK_POS):
-                self.player.pos = death_pos
-            else:
+            if new_y < len(self.BLOCK_POS):
                 self.player.pos = self.BLOCK_POS[new_y][x]
         elif action == "RIGHT":
             new_x = x + 1
             new_y = y + 1
             # Check if move is within bounds
-            if new_y >= len(self.BLOCK_POS):
-                self.player.pos = death_pos
-            else:
+            if new_y < len(self.BLOCK_POS):
                 self.player.pos = self.BLOCK_POS[new_y][new_x]
         elif action == "LEFT": 
             new_x = x - 1
             new_y = y - 1
             # Check if move is within bounds
             if new_y < 0:
-                self.player.pos = death_pos
                 return
             if new_x < 0:
                 # Check if player is able to jump to disc
@@ -208,10 +199,8 @@ class Game:
                     self.player.pos = self.disc_states[0]
                     return
                 else:
-                    self.player.pos = death_pos
                     return    
             self.player.pos = self.BLOCK_POS[new_y][new_x]   
-
         return  
                 
     def is_over(self):
