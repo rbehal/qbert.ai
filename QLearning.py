@@ -161,18 +161,11 @@ class QLearning:
             action_values[act] = q_val
             action_str_to_ale_obj[act] = action
 
-        exp_sum = 0
-        for action in action_values:
-            exp_sum += np.exp(action_values[action]/self.temp)
+        values = np.array(list(action_values.values())) / self.temp
+        probabilities = np.exp(values - np.max(values))
+        probabilities = probabilities / probabilities.sum()
 
-        try:
-            probabilities = [(np.exp(action_values[action]/self.temp)/exp_sum) for action in action_values]
-            best_action = np.random.choice(list(action_values.keys()), p=probabilities)
-        except Exception as e:
-            print(e)
-            print(action_values)
-            print(exp_sum)
-        
+        best_action = np.random.choice(list(action_values.keys()), p=probabilities)
         # Return (Best Action ALE Object, Best Acction Q Value)
         return action_str_to_ale_obj[best_action], action_values[best_action]
 
