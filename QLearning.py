@@ -2,7 +2,7 @@ from Game import Game
 import numpy as np
 
 class QLearning:
-    def __init__(self,game,weights=None,dist_func='euclid',exp_func='eps-greedy',eps=0.05,alpha=0.00001,discount=0.95):
+    def __init__(self,game,weights=None,dist_func='euclid',exp_func='eps-greedy',eps=0.05,temp=5,alpha=0.00001,discount=0.95):
         self.game = game
         self.weights = weights
         self.dist_func = dist_func
@@ -10,6 +10,7 @@ class QLearning:
         self.discount = discount
         self.exp_func = exp_func
         self.eps = eps
+        self.temp = temp
 
     def q_func(self, game):
         # Initializing self.weights and distances
@@ -145,6 +146,36 @@ class QLearning:
         q_val = self.q_func(temp_state)[1]
         return best_action, q_val
 
+    def get_softmax_action(self):
+        minimal_actions = self.game.ale.getMinimalActionSet()
+        
+        action_values = {}
+        action_str_to_ale_obj = {}
+        for action in minimal_actions:
+            act = str(action).split(".")[1] 
+            
+            temp_state = Game(gamestate = self.game)
+            temp_state.execute_action(act)
+
+            q_val = self.q_func(temp_state)[1]
+            action_values[act] = q_val
+            action_str_to_ale_obj[act] = action
+
+        exp_sum = 0
+        for action in action_values:
+            exp_sum += np.exp(action_values[action]/self.temp)
+
+        try:
+            probabilities = [(np.exp(action_values[action]/self.temp)/exp_sum) for action in action_values]
+            best_action = np.random.choice(list(action_values.keys()), p=probabilities)
+        except Exception as e:
+            print(e)
+            print(action_values)
+            print(exp_sum)
+        
+        # Return (Best Action ALE Object, Best Acction Q Value)
+        return action_str_to_ale_obj[best_action], action_values[best_action]
+
     def update_weights(self, curr_state_q, curr_state_fevals, best_action, reward):
         self.game.update()
         
@@ -159,6 +190,8 @@ class QLearning:
         
         if self.exp_func == "eps-greedy" and np.random.random() < self.eps:
             best_action = self.get_eps_greedy_action()
+        elif self.exp_func == "softmax":
+            best_action = self.get_softmax_action()
         else:
             best_action = self.get_max_q_action()
 
@@ -167,5 +200,3 @@ class QLearning:
         
         return reward
         
-
-# TODO: Adding exploration 
