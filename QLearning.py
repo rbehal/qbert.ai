@@ -2,12 +2,14 @@ from Game import Game
 import numpy as np
 
 class QLearning:
-    def __init__(self,game,weights=None,dist_func='euclid',alpha=0.05,discount=0.95):
+    def __init__(self,game,weights=None,dist_func='euclid',exp_func='eps-greedy',eps=0.05,alpha=0.00001,discount=0.95):
         self.game = game
         self.weights = weights
         self.dist_func = dist_func
         self.alpha = alpha
         self.discount = discount
+        self.exp_func = exp_func
+        self.eps = eps
 
     def q_func(self, game):
         # Initializing self.weights and distances
@@ -129,20 +131,41 @@ class QLearning:
         q_vals=list(action_values.values())
         acts=list(action_values.keys())
         best_action = acts[q_vals.index(max(q_vals))]
+        # Return (Best Action ALE Object, Best Acction Q Value)
         return action_str_to_ale_obj[best_action], action_values[best_action]
 
-    def update_weights(self):
-        curr_state_q = self.q_func(self.game)[1]
-        curr_state_fevals = np.array(self.get_distances(self.game))
+    def get_eps_greedy_action(self):
+        minimal_actions = self.game.ale.getMinimalActionSet()
+        best_action = np.random.choice(minimal_actions)
+        act = str(best_action).split(".")[1] 
+
+        temp_state = Game(gamestate = self.game)
+        temp_state.execute_action(act)
         
-        best_action = self.get_max_q_action()
-        reward = self.game.ale.act(best_action[0])
+        q_val = self.q_func(temp_state)[1]
+        return best_action, q_val
+
+    def update_weights(self, curr_state_q, curr_state_fevals, best_action, reward):
         self.game.update()
         
         pre_factor = self.alpha * (reward + self.discount*best_action[1] - curr_state_q)
 
         self.weights = np.add(self.weights, pre_factor * curr_state_fevals)
-        return reward
+        return 
+        
+    def main(self):
+        curr_state_q = self.q_func(self.game)[1]
+        curr_state_fevals = np.array(self.get_distances(self.game))
+        
+        if self.exp_func == "eps-greedy" and np.random.random() < self.eps:
+            best_action = self.get_eps_greedy_action()
+        else:
+            best_action = self.get_max_q_action()
 
+        reward = self.game.ale.act(best_action[0])
+        self.update_weights(curr_state_q, curr_state_fevals, best_action, reward)
+        
+        return reward
+        
 
 # TODO: Adding exploration 
