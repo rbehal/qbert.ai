@@ -117,6 +117,8 @@ class QLearning:
 
     def get_max_q_action(self):
         minimal_actions = self.game.ale.getMinimalActionSet()
+        minimal_actions.pop(1)
+        
         action_values = {}
         action_str_to_ale_obj = {}
         for action in minimal_actions:
@@ -137,6 +139,8 @@ class QLearning:
 
     def get_eps_greedy_action(self):
         minimal_actions = self.game.ale.getMinimalActionSet()
+        minimal_actions.pop(1)
+        
         best_action = np.random.choice(minimal_actions)
         act = str(best_action).split(".")[1] 
 
@@ -148,6 +152,7 @@ class QLearning:
 
     def get_softmax_action(self):
         minimal_actions = self.game.ale.getMinimalActionSet()
+        minimal_actions.pop(1)
         
         action_values = {}
         action_str_to_ale_obj = {}

@@ -211,7 +211,18 @@ class Game:
                     return    
             self.player.pos = self.BLOCK_POS[new_y][new_x]   
         return  
-                
+
+    def get_reward(self):
+        reward = 0
+        while not (self.RAM[0] == 2 and self.RAM[self.RAM_size-1] & 1):
+            if (self.ale.lives() == 0):
+                break
+                # print(self.ale.lives())
+
+            self.update_RAM()
+            reward += self.ale.act(0)
+        return reward
+            
     def is_over(self):
         return self.ale.game_over()
     
