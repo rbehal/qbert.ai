@@ -47,6 +47,11 @@ class Game:
         
         # Load the ROM file
         self.ale.loadROM(rom_file)
+
+        # Set RAM
+        self.RAM_size = self.ale.getRAMSize()
+        self.RAM = np.zeros(self.RAM_size, dtype=np.uint8)
+        self.ale.getRAM(self.RAM)
         
         # Set height and width, initialize RGB display array
         (h,w) = self.ale.getScreenDims()
@@ -80,6 +85,7 @@ class Game:
         self.disc_states = [self.DISC_POS[0], self.DISC_POS[1]]
 
     def update(self):
+        self.update_RAM()
         self.ale.getScreenRGB(self.screen)
         self.update_goal_col()
         self.update_disc_states()
@@ -139,6 +145,9 @@ class Game:
         left_disc = None if (bl == self.screen[self.DISC_POS[0][1]][self.DISC_POS[0][0]]).all() else self.DISC_POS[0]
         right_disc = None if (bl == self.screen[self.DISC_POS[1][1]][self.DISC_POS[1][0]]).all() else self.DISC_POS[1]
         self.disc_states = [left_disc, right_disc]
+
+    def update_RAM(self):
+        self.ale.getRAM(self.RAM)
 
     def get_coords_from_state(self, states):
         coords = []
