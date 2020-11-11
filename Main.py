@@ -47,15 +47,8 @@ def main():
         total_reward = 0
         count = 0 
 
+        game.initialize()
         while not game.is_over():
-            while not (game.RAM[0] == 2 and game.RAM[game.RAM_size - 1] & 1):  # last bit = 1 and first byte = 0
-                game.ale.getRAM(game.RAM)
-                game.ale.act(0)
-            
-            for i in range(3):
-                game.ale.act(0)
-            game.update()
-
             # Get current state q_values and grad_theta_q values
             curr_state_q = learner.q_func(game)[1]
             curr_state_fevals = np.array(learner.get_distances(game))
@@ -72,6 +65,7 @@ def main():
             reward = game.ale.act(best_action[0])
             game.update_RAM()
             reward += game.get_reward()
+            
             learner.update_weights(curr_state_q, curr_state_fevals, best_action, reward)
 
             total_reward += reward

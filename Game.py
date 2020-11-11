@@ -214,14 +214,19 @@ class Game:
 
     def get_reward(self):
         reward = 0
+        # Update rewards until agent is ready to move again
         while not (self.RAM[0] == 2 and self.RAM[self.RAM_size-1] & 1):
             if (self.ale.lives() == 0):
                 break
-                # print(self.ale.lives())
-
             self.update_RAM()
-            reward += self.ale.act(0)
+            reward += self.ale.act(0) # No-Op action to wait for rewards/stall
         return reward
+
+    def initialize(self):
+        while not (self.RAM[0] == 2 and self.RAM[self.RAM_size - 1] & 1):  # First byte = 2, Last bit = 1
+            self.ale.getRAM(self.RAM)
+            self.ale.act(0) # No-Op action to stall until player is ready
+        self.update()
             
     def is_over(self):
         return self.ale.game_over()
