@@ -7,4 +7,4 @@ class Player:
         self.ale = ale
         
         self.lives = ale.lives()
-        self.pos = (0, 0)
+        self.pos = (76, 35)

@@ -215,7 +215,7 @@ class Game:
     def get_reward(self):
         reward = 0
         # Update rewards until agent is ready to move again
-        while not (self.RAM[0] == 2 and self.RAM[self.RAM_size-1] & 1):
+        while (not (self.RAM[0] == 2 and self.RAM[self.RAM_size-1] & 1)) or (self.RAM[self.RAM_size - 2] == 41):
             if (self.ale.lives() == 0):
                 break
             self.update_RAM()

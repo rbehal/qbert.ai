@@ -70,7 +70,11 @@ def main():
 
             total_reward += reward
             count += 1
-            
+        
+        if episode % np.floor((num_episodes / 10)) == 0:
+            if learner.alpha > 0.0001:
+                learner.alpha = learner.alpha / 2
+
         print(learner.weights)
         print("Episode %d ended with score: %d" % (episode, total_reward))
         
