@@ -28,18 +28,20 @@ class QLearning:
             entity_states_dist = self.get_euclid_dist(game, game.entity_states) / 150
             ldisc_dist = self.get_euclid_dist(game, [game.disc_states[0]]) / 130
             rdisc_dist = self.get_euclid_dist(game, [game.disc_states[1]]) / 130
+            goal_state_dist = self.get_nearest_targets_dist(game) / 2000
         elif self.dist_func == 'manhattan':
-            enemy_states_dist = self.get_manhattan_dist(game, game.enemy_states)
-            entity_states_dist = self.get_manhattan_dist(game, game.entity_states)
-            ldisc_dist = self.get_manhattan_dist(game, [game.disc_states[0]])
-            rdisc_dist = self.get_manhattan_dist(game, [game.disc_states[1]])
+            enemy_states_dist = self.get_manhattan_dist(game, game.enemy_states) / 200
+            entity_states_dist = self.get_manhattan_dist(game, game.entity_states) / 200
+            ldisc_dist = self.get_manhattan_dist(game, [game.disc_states[0]]) / 166
+            rdisc_dist = self.get_manhattan_dist(game, [game.disc_states[1]]) / 166
+            goal_state_dist = self.get_nearest_targets_dist(game) / 2500
         elif self.dist_func == 'hamming':
-            enemy_states_dist = self.get_hamming_dist(game, game.enemy_states)
-            entity_states_dist = self.get_hamming_dist(game, game.entity_states)
-            ldisc_dist = self.get_hamming_dist(game, [game.disc_states[0]])
-            rdisc_dist = self.get_hamming_dist(game, [game.disc_states[1]])
-        # goal_state_dist = self.get_goal_state_distance(game)
-        goal_state_dist = self.get_nearest_targets_dist(game) / 2000
+            enemy_states_dist = self.get_hamming_dist(game, game.enemy_states) / 2
+            entity_states_dist = self.get_hamming_dist(game, game.entity_states) / 2
+            ldisc_dist = self.get_hamming_dist(game, [game.disc_states[0]]) / 2
+            rdisc_dist = self.get_hamming_dist(game, [game.disc_states[1]]) / 2
+            goal_state_dist = self.get_nearest_targets_dist(game) / 21
+        
         # Add 1 for constant theta_0
         return 1, goal_state_dist, enemy_states_dist, entity_states_dist, ldisc_dist, rdisc_dist
 
@@ -102,20 +104,6 @@ class QLearning:
                     dist += 1
         return dist
 
-    def get_goal_state_distance(self, game):
-        state = game.get_state_rep()
-        dist = 0
-
-        if self.dist_func == 'euclid':
-            for bit in state:
-                dist += (1 - int(bit)) ** 2 
-            dist = np.sqrt(dist)
-        else: # Hamming distance and manhattan is the same for binary
-            for bit in state:
-                if bit == "0":
-                    dist += 1
-        return dist
-
     def get_nearest_targets_dist(self, game):
         dist = 0
         
@@ -126,7 +114,14 @@ class QLearning:
                 if block_state == 0:
                     q_pos = np.array(game.player.pos)
                     block_pos = np.array(self.game.BLOCK_POS[row_num][block_num])
-                    dist += np.linalg.norm(q_pos - block_pos)
+
+                    if self.dist_func == 'euclid':
+                        dist += np.linalg.norm(q_pos - block_pos)
+                    elif self.dist_func == 'manhattan':
+                        dist += np.sum(np.fabs(block_pos - q_pos))
+                    elif self.dist_func == 'hamming':
+                        dist += 1
+
                 block_num += 1
             row_num += 1
 
