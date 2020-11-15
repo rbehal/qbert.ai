@@ -15,7 +15,7 @@ class QLearning:
     def q_func(self, game):
         # Initializing self.weights and distances
         if self.weights is None:
-            self.weights = np.random.uniform(-1,1,(4))
+            self.weights = np.random.uniform(-1,1,(6))
 
         distances = self.get_distances(game)
         
@@ -41,7 +41,7 @@ class QLearning:
         # goal_state_dist = self.get_goal_state_distance(game)
         goal_state_dist = self.get_nearest_targets_dist(game) / 2000
         # Add 1 for constant theta_0
-        return 1, goal_state_dist, enemy_states_dist, entity_states_dist
+        return 1, goal_state_dist, enemy_states_dist, entity_states_dist, ldisc_dist, rdisc_dist
 
     def get_euclid_dist(self, game, states):
         dist = 0 
@@ -184,7 +184,7 @@ class QLearning:
             action_str_to_ale_obj[act] = action
 
         values = np.array(list(action_values.values())) / self.temp
-        probabilities = np.exp(values - np.max(values))
+        probabilities = np.exp(values)
         probabilities = probabilities / probabilities.sum()
 
         best_action = np.random.choice(list(action_values.keys()), p=probabilities)
