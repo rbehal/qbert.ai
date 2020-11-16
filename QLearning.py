@@ -23,7 +23,7 @@ class QLearning:
             elif self.approx_type == 'simple':
                 num_weights = 2
             elif self.approx_type == 'mixed':
-                num_weights = 5
+                num_weights = 4
 
             self.weights = np.random.uniform(-1,1,(num_weights))
 
