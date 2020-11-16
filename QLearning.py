@@ -3,7 +3,7 @@ import numpy as np
 
 class QLearning:
     def __init__(self,game,weights=None,dist_func='euclid',exp_func='eps-greedy',
-                      approx_type='complex',eps=0.05,temp=25,alpha=0.05,discount=0.995):
+                      approx_type='complex',eps=0.05,temp=15,alpha=0.05,discount=0.995):
         self.game = game
         self.weights = weights
         self.dist_func = dist_func

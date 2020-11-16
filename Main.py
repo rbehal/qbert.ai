@@ -27,7 +27,7 @@ csv_name = args['csv_name']
 def main():
     # Initialize game and learner
     game = Game(display=display, random_seed=seed)
-    learner = QLearning(game, dist_func=dist_func, exp_func=exp_func)
+    learner = QLearning(game, dist_func=dist_func, exp_func=exp_func, approx_type=approx_type)
 
     # Display run parameters
     print("""Running game with:
