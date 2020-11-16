@@ -64,18 +64,18 @@ def main():
             # Execute action and update weights based on reward
             reward = game.ale.act(best_action[0])
             game.update_RAM()
+            
             reward += game.get_reward()
+            total_reward += reward
             
             learner.update_weights(curr_state_q, curr_state_fevals, best_action, reward)
-
-            total_reward += reward
             count += 1
         
-        if episode % np.floor((num_episodes / 10)) == 0:
-            if learner.alpha > 0.0001:
-                learner.alpha /= 2
+        if episode % np.floor((num_episodes / 15)) == 0:
             if learner.eps > 0.01:
-                learner.eps *= 0.75
+                learner.eps *= 0.8
+            # if learner.alpha > 0.001:
+            #     learner.alpha *= 0.75
 
         print(learner.weights)
         print("Episode %d ended with score: %d" % (episode, total_reward))

@@ -2,7 +2,7 @@ from Game import Game
 import numpy as np
 
 class QLearning:
-    def __init__(self,game,weights=None,dist_func='euclid',exp_func='eps-greedy',eps=0.05,temp=25,alpha=0.1,discount=0.995):
+    def __init__(self,game,weights=None,dist_func='euclid',exp_func='eps-greedy',eps=0.05,temp=25,alpha=0.05,discount=0.995):
         self.game = game
         self.weights = weights
         self.dist_func = dist_func
@@ -15,7 +15,7 @@ class QLearning:
     def q_func(self, game):
         # Initializing self.weights and distances
         if self.weights is None:
-            self.weights = np.random.uniform(-1,1,(6))
+            self.weights = np.random.uniform(-1,1,(7))
 
         distances = self.get_distances(game)
         
@@ -43,7 +43,7 @@ class QLearning:
             goal_state_dist = self.get_nearest_targets_dist(game) / 21
         
         # Add 1 for constant theta_0
-        return 1, goal_state_dist, enemy_states_dist, entity_states_dist, ldisc_dist, rdisc_dist
+        return 1, goal_state_dist, enemy_states_dist, entity_states_dist, ldisc_dist, rdisc_dist, game.player.lives / 4
 
     def get_euclid_dist(self, game, states):
         dist = 0 
@@ -131,8 +131,11 @@ class QLearning:
         minimal_actions = self.game.ale.getMinimalActionSet()
         minimal_actions.pop(1)
         
+        # Dict. that stores (q_val, player_alive)
         action_values = {}
+        # Dict. that maps (str(ALE_act), ALE_act)
         action_str_to_ale_obj = {}
+
         for action in minimal_actions:
             act = str(action).split(".")[1] 
             
@@ -140,14 +143,14 @@ class QLearning:
             temp_state.execute_action(act)
 
             q_val = self.q_func(temp_state)[1]
-            action_values[act] = q_val
+            action_values[act] = q_val, temp_state.player.alive
             action_str_to_ale_obj[act] = action
 
         q_vals=list(action_values.values())
         acts=list(action_values.keys())
         best_action = acts[q_vals.index(max(q_vals))]
-        # Return (Best Action ALE Object, Best Acction Q Value)
-        return action_str_to_ale_obj[best_action], action_values[best_action]
+        # Return (Best Action ALE Object, Best Action Q Value, Player Alive Status)
+        return action_str_to_ale_obj[best_action], action_values[best_action][0], action_values[best_action][1]
 
     def get_eps_greedy_action(self):
         minimal_actions = self.game.ale.getMinimalActionSet()
@@ -160,14 +163,18 @@ class QLearning:
         temp_state.execute_action(act)
         
         q_val = self.q_func(temp_state)[1]
-        return best_action, q_val
+        # Return (Best Action ALE Object, Best Action Q Value, Player Alive Status)
+        return best_action, q_val, temp_state.player.alive
 
     def get_softmax_action(self):
         minimal_actions = self.game.ale.getMinimalActionSet()
         minimal_actions.pop(1)
         
+        # Dict. that stores (q_val, player_alive)
         action_values = {}
+        # Dict. that maps (str(ALE_act), ALE_act)
         action_str_to_ale_obj = {}
+        
         for action in minimal_actions:
             act = str(action).split(".")[1] 
             
@@ -175,19 +182,27 @@ class QLearning:
             temp_state.execute_action(act)
 
             q_val = self.q_func(temp_state)[1]
-            action_values[act] = q_val
+            action_values[act] = q_val, temp_state.player.alive
             action_str_to_ale_obj[act] = action
 
-        values = np.array(list(action_values.values())) / self.temp
+        action_qvals = []
+        for act in action_values:
+            action_qvals.append(action_values[act][0])
+
+        values = np.array(action_qvals) / self.temp
         probabilities = np.exp(values)
         probabilities = probabilities / probabilities.sum()
 
         best_action = np.random.choice(list(action_values.keys()), p=probabilities)
-        # Return (Best Action ALE Object, Best Acction Q Value)
-        return action_str_to_ale_obj[best_action], action_values[best_action]
+        # Return (Best Action ALE Object, Best Action Q Value, Player Alive Status)
+        return action_str_to_ale_obj[best_action], action_values[best_action][0], action_values[best_action][1]
 
     def update_weights(self, curr_state_q, curr_state_fevals, best_action, reward):
         self.game.update()
+
+        # Punish action if qbert dies
+        if not best_action[2]:
+            reward -= 250
         
         pre_factor = self.alpha * (reward + self.discount*best_action[1] - curr_state_q)
 

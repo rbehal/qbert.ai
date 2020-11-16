@@ -31,7 +31,7 @@ class Game:
             self.enemy_states = deepcopy(gamestate.enemy_states)
             self.entity_states = deepcopy(gamestate.entity_states)
             self.disc_states = deepcopy(gamestate.disc_states)
-            self.player = Player(None, gamestate.player)
+            self.player = Player(None, player=gamestate.player)
             return
         
         self.ale = ALEInterface()
@@ -176,6 +176,7 @@ class Game:
             new_y = y - 1
             # Checks if move is within bounds
             if new_y < 0:
+                self.player.died()
                 return
             if x >= len(self.BLOCK_POS[new_y]):
                 # Check if player is able to jump to disc
@@ -183,6 +184,7 @@ class Game:
                     self.player.pos = self.disc_states[1]
                     return
                 else:
+                    self.player.died()
                     return
             self.player.pos = self.BLOCK_POS[new_y][x]
         elif action == "DOWN":
@@ -190,17 +192,24 @@ class Game:
             # Check if move is within bounds
             if new_y < len(self.BLOCK_POS):
                 self.player.pos = self.BLOCK_POS[new_y][x]
+            else:
+                self.player.died()
+                return
         elif action == "RIGHT":
             new_x = x + 1
             new_y = y + 1
             # Check if move is within bounds
             if new_y < len(self.BLOCK_POS):
                 self.player.pos = self.BLOCK_POS[new_y][new_x]
+            else:
+                self.player.died()
+                return
         elif action == "LEFT": 
             new_x = x - 1
             new_y = y - 1
             # Check if move is within bounds
             if new_y < 0:
+                self.player.died()
                 return
             if new_x < 0:
                 # Check if player is able to jump to disc
@@ -208,8 +217,16 @@ class Game:
                     self.player.pos = self.disc_states[0]
                     return
                 else:
+                    self.player.died()
                     return    
             self.player.pos = self.BLOCK_POS[new_y][new_x]   
+
+        # Check if Qbert hit an enemy
+        coords = self.get_coords_from_state(self.enemy_states)
+        for coord in coords:
+            if self.player.pos == coord:
+                self.player.died()
+                return
         return  
 
     def get_reward(self):
