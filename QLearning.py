@@ -2,20 +2,30 @@ from Game import Game
 import numpy as np
 
 class QLearning:
-    def __init__(self,game,weights=None,dist_func='euclid',exp_func='eps-greedy',eps=0.05,temp=25,alpha=0.05,discount=0.995):
+    def __init__(self,game,weights=None,dist_func='euclid',exp_func='eps-greedy',
+                      approx_type='complex',eps=0.05,temp=25,alpha=0.05,discount=0.995):
         self.game = game
         self.weights = weights
         self.dist_func = dist_func
-        self.alpha = alpha
-        self.discount = discount
         self.exp_func = exp_func
+        self.approx_type = approx_type
         self.eps = eps
         self.temp = temp
+        self.alpha = alpha
+        self.discount = discount
 
     def q_func(self, game):
         # Initializing self.weights and distances
         if self.weights is None:
-            self.weights = np.random.uniform(-1,1,(7))
+            num_weights = 0
+            if self.approx_type == 'complex':
+                num_weights = 7
+            elif self.approx_type == 'simple':
+                num_weights = 2
+            elif self.approx_type == 'mixed':
+                num_weights = 5
+
+            self.weights = np.random.uniform(-1,1,(num_weights))
 
         distances = self.get_distances(game)
         
@@ -43,7 +53,13 @@ class QLearning:
             goal_state_dist = self.get_nearest_targets_dist(game) / 21
         
         # Add 1 for constant theta_0
-        return 1, goal_state_dist, enemy_states_dist, entity_states_dist, ldisc_dist, rdisc_dist, game.player.lives / 4
+        if self.approx_type == 'complex':
+            return 1, goal_state_dist, enemy_states_dist, entity_states_dist, ldisc_dist, rdisc_dist, game.player.lives / 4
+        elif self.approx_type == 'simple':
+            return 1, goal_state_dist
+        elif self.approx_type == 'mixed':
+            return 1, goal_state_dist, enemy_states_dist, entity_states_dist
+        
 
     def get_euclid_dist(self, game, states):
         dist = 0 

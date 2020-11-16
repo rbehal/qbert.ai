@@ -11,6 +11,7 @@ ap.add_argument("-d", "--display", default=False, type=bool)
 ap.add_argument("-s", "--seed", default=123, type=int)
 ap.add_argument("-m", "--distance", default='euclid', choices=['euclid','manhattan','hamming'])
 ap.add_argument("-x", "--exploration", default='eps-greedy', choices=['eps-greedy','softmax'])
+ap.add_argument("-t", "--approx_type", default='complex', choices=['simple','complex','mixed'])
 ap.add_argument("-n", "--num_episodes", default=500, type=int)
 ap.add_argument("-f", "--csv_name", default='training_data')
 
@@ -19,6 +20,7 @@ display = args['display']
 seed = args['seed']
 exp_func = args['exploration']
 dist_func = args['distance']
+approx_type = args['approx_type']
 num_episodes = args['num_episodes']
 csv_name = args['csv_name']
 
@@ -32,9 +34,10 @@ def main():
                         Seed: {}
                         Distance Function: {}
                         Exploration Function: {}
+                        Approximation Function: {}
                         # of Episodes: {}
                         CSV Filename: {}
-                """.format(seed, dist_func, exp_func, num_episodes,csv_name))
+                """.format(seed,dist_func,exp_func,approx_type,num_episodes,csv_name))
 
     # Initialize data structure for CSV and list of minimal actions
     training_data = []
