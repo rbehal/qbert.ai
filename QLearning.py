@@ -1,5 +1,6 @@
 from Game import Game
 import numpy as np
+import json
 
 class QLearning:
     def __init__(self,game,weights=None,dist_func='euclid',exp_func='eps-greedy',
@@ -13,6 +14,9 @@ class QLearning:
         self.temp = temp
         self.alpha = alpha
         self.discount = discount
+        if self.weights is not None:
+            with open(self.weights) as f:
+                self.weights = json.load(f)
 
     def q_func(self, game):
         # Initializing self.weights and distances

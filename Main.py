@@ -14,6 +14,8 @@ ap.add_argument("-x", "--exploration", default='eps-greedy', choices=['eps-greed
 ap.add_argument("-t", "--approx_type", default='complex', choices=['simple','complex','mixed'])
 ap.add_argument("-n", "--num_episodes", default=500, type=int)
 ap.add_argument("-f", "--csv_name", default='training_data')
+# Should be input as the file path of a JSON file containing an array
+ap.add_argument("-w", "--weights")
 
 args = vars(ap.parse_args())
 display = args['display']
@@ -23,11 +25,12 @@ dist_func = args['distance']
 approx_type = args['approx_type']
 num_episodes = args['num_episodes']
 csv_name = args['csv_name']
+weights = args.get('weights')
 
 def main():
     # Initialize game and learner
     game = Game(display=display, random_seed=seed)
-    learner = QLearning(game, dist_func=dist_func, exp_func=exp_func, approx_type=approx_type)
+    learner = QLearning(game, dist_func=dist_func, exp_func=exp_func, approx_type=approx_type, weights=weights)
 
     # Display run parameters
     print("""Running game with:
