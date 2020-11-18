@@ -1,3 +1,9 @@
+# Usage:
+# 
+# python3 Main.py -d <displayOn?> -s <seed> -m <dist_func> -x <exp_fuc> -t <approx_type> -n <num_episodes> -f <csv_name> -w <weights>
+
+
+# Imports 
 from Game import *
 from QLearning import *
 import matplotlib.pyplot as plt
@@ -17,6 +23,7 @@ ap.add_argument("-f", "--csv_name", default='training_data')
 # Should be input as the file path of a JSON file containing an array
 ap.add_argument("-w", "--weights")
 
+# Set argument variables
 args = vars(ap.parse_args())
 display = args['display']
 seed = args['seed']
@@ -26,6 +33,8 @@ approx_type = args['approx_type']
 num_episodes = args['num_episodes']
 csv_name = args['csv_name']
 weights = args.get('weights')
+
+
 
 def main():
     # Initialize game and learner
@@ -78,12 +87,7 @@ def main():
             learner.update_weights(curr_state_q, curr_state_fevals, best_action, reward)
             count += 1
         
-        if episode % np.floor((num_episodes / 15)) == 0:
-            if learner.eps > 0.01:
-                learner.eps *= 0.8
-            # if learner.alpha > 0.001:
-            #     learner.alpha *= 0.75
-
+        # End of episode print information
         print(learner.weights)
         print("Episode %d ended with score: %d" % (episode, total_reward))
         
@@ -104,6 +108,7 @@ def main():
     write_csv(training_data)
     plot_training(training_data)
 
+# Writes csv file with training data (game scores and weights)
 def write_csv(training_data):
     with open(csv_name + ".csv",'w') as csv_file:
         # Initialize headers for CSV file
@@ -117,26 +122,13 @@ def write_csv(training_data):
         for data in training_data:
             writer.writerow(data)
 
-def plot_training(training_data, num_past_avg = 10):
+# Displays graph of episode number vs. score
+def plot_training(training_data):
     x = []
     y = []
-    
-    avg = []
-    count = 0
     for episode in training_data:
-        count += 1
-        ep_num = episode[0]
-        score = episode[1]
-        
-        avg.append(score)
-        if count == num_past_avg:
-            count = 0
-            
-            x.append(ep_num)
-            y.append(sum(avg)/len(avg))
-            
-            avg = []
- 
+        x.append(episode[0])
+        y.append(episode[1])
     plt.plot(x, y)
     plt.xlabel('Episode Number')
     plt.ylabel('Score')

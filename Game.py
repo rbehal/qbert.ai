@@ -34,11 +34,13 @@ class Game:
             self.player = Player(None, player=gamestate.player)
             return
         
+        # Initialize ALE and settings
         self.ale = ALEInterface()
         
         self.ale.setInt("random_seed", random_seed)
         self.ale.setInt('frame_skip', frame_skip)
 
+        # Display initialization
         if display:
             import pygame
             pygame.init()
@@ -92,13 +94,15 @@ class Game:
         # total game score, # of sams killed, # of coilys killed, # of green balls
         self.high_scores = [0,0,0,0] 
 
-    def update(self):
+    # Update all relevant game state parameters
+    def update(self):        
         self.update_RAM()
         self.ale.getScreenRGB(self.screen)
         self.update_goal_col()
         self.update_disc_states()
         self.player.lives = self.ale.lives()
 
+        # Loop through all of the blocks
         row_num = 0
         for row in self.BLOCK_POS:
             block_num = 0            
@@ -141,7 +145,9 @@ class Game:
                 block_num += 1
             row_num += 1
 
+    # Updates the target colour for the blocks Q*bert changes
     def update_goal_col(self):
+        # Check the area of the score for a colour
         raw = self.screen[5:30, 30:40]
         raw = raw[np.nonzero(raw)]
         if len(raw > 2):
@@ -157,6 +163,7 @@ class Game:
     def update_RAM(self):
         self.ale.getRAM(self.RAM)
 
+    # Gets the RGB (x,y ) coordinate values from the internal state variables
     def get_coords_from_state(self, states):
         coords = []
         for i in range(len(states)):
@@ -165,13 +172,7 @@ class Game:
                     coords.append(self.BLOCK_POS[i][j])
         return coords
 
-    def get_state_rep(self):
-        state = ""
-        for row in self.block_states:
-            for block in row:
-                state += str(block)
-        return state
-
+    # Executes an action making reflective changes in the internal game state only 
     def execute_action(self, action):
         # Get player position in terms of indices 
         player_pos = [(index, row.index(self.player.pos)) for index, row in enumerate(self.BLOCK_POS) if self.player.pos in row]
@@ -237,6 +238,8 @@ class Game:
                 return
         return  
 
+    # Function that is used to get all rewards after agent makes an action 
+    # as well as stall until agent is ready again
     def get_reward(self, reward):
         total_reward = 0 
         # Update rewards until agent is ready to move again
@@ -244,6 +247,7 @@ class Game:
             if (self.ale.lives() == 0):
                 break           
            
+           # Keep track of statistics based on reward received
             total_reward += reward
             if reward == 300:
                 self.sams_killed += 1
@@ -251,20 +255,24 @@ class Game:
                 self.coilys_killed += 1
             elif reward == 100:
                 self.green_balls_caught += 1
+
             self.update_RAM()
             reward = self.ale.act(0) # No-Op action to wait for rewards/stall
         
         return total_reward
 
+    # Stalls the game until Q*bert is ready to make a move 
     def initialize(self):
         while not (self.RAM[0] == 2 and self.RAM[self.RAM_size - 1] & 1):  # First byte = 2, Last bit = 1
             self.ale.getRAM(self.RAM)
             self.ale.act(0) # No-Op action to stall until player is ready
         self.update()
             
+    # Returns a boolean representing then game status
     def is_over(self):
         return self.ale.game_over()
     
+    # Resets the game at the end of an episode
     def reset(self, total_reward):
         # Update high scores
         if total_reward > self.high_scores[0]:

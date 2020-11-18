@@ -64,7 +64,7 @@ class QLearning:
         elif self.approx_type == 'mixed':
             return 1, goal_state_dist, enemy_states_dist, entity_states_dist
         
-
+    # Gets Euclidean distance between players and enemies, friendlies, and discs
     def get_euclid_dist(self, game, states):
         dist = 0 
         # Get coords if not disc states
@@ -82,6 +82,7 @@ class QLearning:
                 dist += np.linalg.norm(np.array(coord)-player_pos)
         return dist
 
+    # Gets Manhattan distance between players and enemies, friendlies, and discs
     def get_manhattan_dist(self, game, states):
         dist = 0 
         # Get coords if not disc states
@@ -99,6 +100,7 @@ class QLearning:
                 dist += np.sum(np.fabs(np.array(coord)-player_pos))
         return dist
 
+    # Gets Hamming distance between players and enemies, friendlies, and discs
     def get_hamming_dist(self, game, states):
         dist = 0 
         # Get coords if not disc states
@@ -124,12 +126,13 @@ class QLearning:
                     dist += 1
         return dist
 
+    # Gets distance between Q*bert and blocks not in target statate
     def get_nearest_targets_dist(self, game):
         dist = 0
         
         row_num = 0
         for row in game.block_states:
-            block_num = 0            
+            block_num = 0             
             for block_state in row:
                 if block_state == 0:
                     q_pos = np.array(game.player.pos)
@@ -147,6 +150,7 @@ class QLearning:
 
         return dist
 
+    # Gets action with the highest q value
     def get_max_q_action(self):
         minimal_actions = self.game.ale.getMinimalActionSet()
         minimal_actions.pop(1)
@@ -172,6 +176,7 @@ class QLearning:
         # Return (Best Action ALE Object, Best Action Q Value, Player Alive Status)
         return action_str_to_ale_obj[best_action], action_values[best_action][0], action_values[best_action][1]
 
+    # Gets random action 
     def get_eps_greedy_action(self):
         minimal_actions = self.game.ale.getMinimalActionSet()
         minimal_actions.pop(1)
@@ -186,6 +191,7 @@ class QLearning:
         # Return (Best Action ALE Object, Best Action Q Value, Player Alive Status)
         return best_action, q_val, temp_state.player.alive
 
+    # Gets action based on Gaussian distribution of actions weighted based on Q value
     def get_softmax_action(self):
         minimal_actions = self.game.ale.getMinimalActionSet()
         minimal_actions.pop(1)
@@ -217,6 +223,7 @@ class QLearning:
         # Return (Best Action ALE Object, Best Action Q Value, Player Alive Status)
         return action_str_to_ale_obj[best_action], action_values[best_action][0], action_values[best_action][1]
 
+    # Update weights according to the Widrow-Hoff rule
     def update_weights(self, curr_state_q, curr_state_fevals, best_action, reward):
         self.game.update()
 
