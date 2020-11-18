@@ -84,6 +84,14 @@ class Game:
         # States of discs
         self.disc_states = [self.DISC_POS[0], self.DISC_POS[1]]
 
+        # Game statistics
+        self.sams_killed = 0 
+        self.coilys_killed = 0 
+        self.green_balls_caught = 0
+        # Initialize high scores
+        # total game score, # of sams killed, # of coilys killed, # of green balls
+        self.high_scores = [0,0,0,0] 
+
     def update(self):
         self.update_RAM()
         self.ale.getScreenRGB(self.screen)
@@ -229,15 +237,24 @@ class Game:
                 return
         return  
 
-    def get_reward(self):
-        reward = 0
+    def get_reward(self, reward):
+        total_reward = 0 
         # Update rewards until agent is ready to move again
         while (not (self.RAM[0] == 2 and self.RAM[self.RAM_size-1] & 1)) or (self.RAM[self.RAM_size - 2] == 41):
             if (self.ale.lives() == 0):
-                break
+                break           
+           
+            total_reward += reward
+            if reward == 300:
+                self.sams_killed += 1
+            elif reward == 500:
+                self.coilys_killed += 1
+            elif reward == 100:
+                self.green_balls_caught += 1
             self.update_RAM()
-            reward += self.ale.act(0) # No-Op action to wait for rewards/stall
-        return reward
+            reward = self.ale.act(0) # No-Op action to wait for rewards/stall
+        
+        return total_reward
 
     def initialize(self):
         while not (self.RAM[0] == 2 and self.RAM[self.RAM_size - 1] & 1):  # First byte = 2, Last bit = 1
@@ -248,5 +265,21 @@ class Game:
     def is_over(self):
         return self.ale.game_over()
     
-    def reset(self):
-        return self.ale.reset_game()
+    def reset(self, total_reward):
+        # Update high scores
+        if total_reward > self.high_scores[0]:
+            self.high_scores[0] = total_reward
+        if self.sams_killed > self.high_scores[1]:
+            self.high_scores[1] = self.sams_killed
+        if self.coilys_killed > self.high_scores[2]:
+            self.high_scores[2] = self.coilys_killed
+        if self.green_balls_caught > self.high_scores[3]:
+            self.high_scores[3] = self.green_balls_caught
+
+        # Reset statistics 
+        self.sams_killed = 0 
+        self.coilys_killed = 0 
+        self.green_balls_caught = 0
+
+        self.ale.reset_game()
+        return 

@@ -42,8 +42,9 @@ def main():
                         CSV Filename: {}
                 """.format(seed,dist_func,exp_func,approx_type,num_episodes,csv_name))
 
-    # Initialize data structure for CSV and list of minimal actions
+    # Initialize data structure for CSV, list of minimal actions, and stats
     training_data = []
+    stats = [] 
     minimal_actions = game.ale.getMinimalActionSet()
     minimal_actions.pop(1)
 
@@ -71,7 +72,7 @@ def main():
             reward = game.ale.act(best_action[0])
             game.update_RAM()
             
-            reward += game.get_reward()
+            reward += game.get_reward(reward)
             total_reward += reward
             
             learner.update_weights(curr_state_q, curr_state_fevals, best_action, reward)
@@ -90,7 +91,16 @@ def main():
         final_values = [episode, total_reward] + list(learner.weights)
         training_data.append(final_values)
         
-        game.reset()
+        game.reset(total_reward)
+    
+    # Display overall game analysis
+    scores = game.high_scores
+    print("""Game analysis:
+                        Highest score: {}
+                        Highest # of Sams killed: {}
+                        Highest # of Coilys killed: {}
+                        Highest # of green balls caught: {}
+                """.format(scores[0],scores[1],scores[2],scores[3]))
     write_csv(training_data)
     plot_training(training_data)
 
