@@ -6,18 +6,18 @@ The following code serves to be an implementation of Q-Learning with function ap
 ## Playing the game
 In order to have the client play the game, ensure the following packages are installed with Python 3:
 
--pygame
--numpy
--matplotlib.pyplot
--ALE (Arcade Learning Environment)
+- pygame
+- numpy
+- matplotlib.pyplot
+- ALE (Arcade Learning Environment)
 
 Include the following files in the same directory:
 
--Main.py
--Game.py
--Player.py
--QLearning.py
--qbert.bin
+- Main.py
+- Game.py
+- Player.py
+- QLearning.py
+- qbert.bin
 
 The agent and learning can be launched from the command-line through the following:
 ~~~
