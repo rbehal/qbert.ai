@@ -1,6 +1,6 @@
 # Active Reinforcement Learning for Atari 2600 Game Q\*bert
 
-The following code serves to be an implementation of Q-Learning with function approximation to play Q\*bert in the [Arcade Learning Environment](https://github.com/mgbellemare/Arcade-Learning-Environment). The rules and guidelines for the game can be found in this [Atari Magazine](https://www.atarimagazines.com/cva/v1n2/qbert.php#:~:text=Q*bert%20features%20nine%20levels,or%20racks)%20on%20each%20level.).
+The following code serves to be an implementation of Q-Learning with function approximation to play Q\*bert in the [Arcade Learning Environment](https://github.com/mgbellemare/Arcade-Learning-Environment). The rules and guidelines for the game can be found in this [Atari Magazine](https://www.atarimagazines.com/cva/v1n2/qbert.php).
 
 
 ## Playing the game
